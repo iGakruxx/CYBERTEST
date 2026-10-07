@@ -1,0 +1,11 @@
+{
+  "name": "cybertest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local, scope-controlled internal security assessment workspace",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=20" }
+}
