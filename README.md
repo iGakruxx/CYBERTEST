@@ -43,7 +43,9 @@ The app itself is a local web interface; it does not need administrator privileg
 Kali is a good environment for the command-line security tools used by this project. From a terminal:
 
 ```bash
-cd ~/CYBERTEST
+cd ~
+git clone https://github.com/iGakruxx/CYBERTEST.git
+cd CYBERTEST
 sudo apt update
 sudo apt install -y nodejs npm nmap
 node --version
