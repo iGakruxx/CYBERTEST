@@ -49,7 +49,7 @@ const server = http.createServer(async (req, res) => {
     const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
     const filePath = path.resolve(publicDir, file);
     if (!filePath.startsWith(publicDir) || !fs.existsSync(filePath)) return send(res, 404, { error: 'Not found' });
-    const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript' };
+    const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.png': 'image/png', '.ico': 'image/x-icon' };
     return send(res, 200, fs.readFileSync(filePath), types[path.extname(filePath)] || 'text/plain');
   } catch (error) { return send(res, 500, { error: error.message }); }
 });

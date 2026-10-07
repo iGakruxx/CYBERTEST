@@ -1,46 +1,49 @@
-# CYBERTEST
+# Cybertest
 
-Local, scope-controlled workspace for authorized internal security assessments. It is a dependency-free MVP that runs on Node.js 20+ and serves a responsive UI.
+<p align="center">
+  <img src="public/assets/cybertest-logo.png" alt="Cybertest — By Gabriel Huertas" width="560">
+</p>
 
-## Implemented
+Espacio de trabajo local y controlado por alcance para evaluaciones internas de seguridad autorizadas. Es un MVP sin dependencias externas que usa Node.js 20+ y sirve una interfaz con estética Liquid Glass inspirada en Apple.
 
-- Local network-interface discovery via Node's operating-system APIs.
-- Explicit assessment-scope confirmation and strict input validation.
-- Nmap availability detection and controlled Quick, Standard, and Deep (safe scripts) scan profiles.
-- Local assessment project persistence in `data/`; raw Nmap XML is preserved when a scan succeeds.
-- Professional dark dashboard, tool settings, project view, workflow guardrails, and activity log.
+## Funcionalidades incluidas
 
-## Run on Windows
+- Descubrimiento de interfaces de red locales mediante las API del sistema operativo.
+- Confirmación explícita de autorización y validación estricta de los objetivos.
+- Detección de Nmap y perfiles de análisis Rápido, Estándar y Profundo (solo scripts seguros de Nmap).
+- Persistencia local de proyectos en `data/`; conserva el XML original cuando el análisis finaliza correctamente.
+- Panel de control, vista de herramientas, proyectos, registro de actividad y controles de flujo.
+
+## Ejecutar en Windows
+
+Desde la carpeta del proyecto:
 
 ```powershell
-node server.js
-```
-
-If `node` is not available in your PowerShell `PATH`, use the included Windows launcher:
-
-```powershell
+cd C:\Users\GeoxOS\Documents\ChatGPT\CYBERTEST
 .\start-cybertest.ps1
 ```
 
-Or double-click `start-cybertest.cmd`.
-
-Then open `http://localhost:4173`. Nmap must be installed and resolvable via `PATH` for scans to run. Tool status is visible under Settings. Test the input constraint with:
+Si PowerShell bloquea el script:
 
 ```powershell
-node --test
+powershell -ExecutionPolicy Bypass -File .\start-cybertest.ps1
 ```
 
-To enable real local scans on Windows, install Nmap from [nmap.org/download](https://nmap.org/download.html), reopen PowerShell, and verify:
+Abre [http://localhost:4173](http://localhost:4173). Para realizar análisis, Nmap debe estar instalado y disponible en `PATH`. Compruébalo con:
 
 ```powershell
 nmap --version
 ```
 
-The app itself is a local web interface; it does not need administrator privileges for normal startup. Some Nmap options may require an elevated terminal depending on the target and Windows configuration.
+Puedes ejecutar las pruebas con:
 
-## Run on Kali Linux
+```powershell
+node --test
+```
 
-Kali is a good environment for the command-line security tools used by this project. From a terminal:
+## Ejecutar en Kali Linux
+
+Clona el repositorio y prepara las herramientas una sola vez:
 
 ```bash
 cd ~
@@ -53,26 +56,25 @@ nmap --version
 node server.js
 ```
 
-Open `http://localhost:4173` in a browser. If port 4173 is occupied, choose another local port:
+Luego abre [http://localhost:4173](http://localhost:4173). En usos posteriores basta con:
+
+```bash
+cd ~/CYBERTEST
+node server.js
+```
+
+Si el puerto está ocupado, usa otro puerto local:
 
 ```bash
 PORT=8080 node server.js
 ```
 
-Kali and Windows can use the same Git repository, but scan data is intentionally ignored by Git (`data/`). Keep reports and evidence that contain sensitive information out of public repositories.
+## Entorno recomendado
 
-## Which environment should I use?
+Windows es suficiente para desarrollar y usar la interfaz. Kali resulta útil para laboratorios y para herramientas de seguridad nativas. El arranque dual es conveniente cuando necesitas acceso nativo a redes, adaptadores inalámbricos, rutas o paquetes sin las limitaciones de una capa de virtualización; WSL2 es una alternativa práctica si no necesitas esas capacidades.
 
-Dual boot is useful when you want Kali's native networking and security-tool ecosystem, while Windows is convenient for everyday development and the dashboard. It is not required: for this MVP, Windows plus Nmap is enough, and Kali is helpful when you later add Nuclei or other authorized assessment tools. WSL2 is a practical middle ground if you want Linux tools without rebooting; use native Kali/dual boot for labs where wireless adapters, routing, or raw packet access matter.
+## Uso responsable
 
-## Safe test targets
+Analiza únicamente sistemas propios o para los que tengas autorización explícita. Para una comprobación pública y ligera, Nmap ofrece `scanme.nmap.org` bajo sus condiciones de uso. Para pruebas repetibles, es preferible montar un laboratorio propio, por ejemplo OWASP Juice Shop o WebGoat.
 
-Only scan systems you own or have explicit permission to assess. For a public connectivity check, use the Nmap project’s intentionally provided test host `scanme.nmap.org` and a light profile, respecting its usage policy. For repeatable testing, prefer a local lab such as OWASP Juice Shop or WebGoat running on your own machine.
-
-## Security posture
-
-CYBERTEST never starts a scan without an explicit target and authorization confirmation. It does not send assessment data externally, fabricate findings, run Metasploit, or automatically perform destructive validation. The Ethical Hacking, Evidence, Report, and Web modules currently provide gated workflow surfaces; they need their respective local integrations before they should be presented as operational capabilities.
-
-## Packaging direction
-
-The HTTP core is deliberately separated from the UI, making it practical to wrap in Tauri later. A production build should replace JSON-file persistence with SQLite, add a Tauri command bridge, and implement report/evidence exporters with tests on Windows and Kali.
+Cybertest no inicia análisis sin objetivo y confirmación explícitos; no inventa resultados ni ejecuta explotación automática o validaciones destructivas. Los módulos de Hacking Ético, Evidencia, Informes y Pentest Web son superficies de flujo controladas y requieren sus integraciones locales antes de considerarse operativos.
