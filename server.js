@@ -23,19 +23,48 @@ function network() {
 function validScope(target) {
   return typeof target === 'string' && /^[a-zA-Z0-9.:/\-\[\]]{1,255}$/.test(target.trim());
 }
+function knownToolPaths(name) {
+  if (process.platform !== 'win32') return [];
+  const home = os.homedir();
+  const candidates = {
+    nmap: [
+      'C:\\Program Files\\Nmap\\nmap.exe',
+      'C:\\Program Files (x86)\\Nmap\\nmap.exe'
+    ],
+    nuclei: [path.join(home, 'AppData', 'Local', 'Cybertest', 'tools', 'nuclei', 'nuclei.exe')],
+    msfconsole: [
+      'C:\\metasploit-framework\\bin\\msfconsole.bat',
+      'C:\\Tools\\metasploit-framework\\bin\\msfconsole.bat'
+    ]
+  }[name] || [];
+  if (name === 'nuclei') {
+    const downloads = path.join(home, 'Downloads');
+    if (fs.existsSync(downloads)) {
+      for (const entry of fs.readdirSync(downloads, { withFileTypes: true })) {
+        if (entry.isDirectory() && entry.name.toLowerCase().startsWith('nuclei_')) candidates.push(path.join(downloads, entry.name, 'nuclei.exe'));
+      }
+    }
+  }
+  return candidates;
+}
 async function tools() {
   const list = process.platform === 'win32' ? ['where'] : ['which'];
   const names = ['nmap', 'nuclei', 'msfconsole'];
   const result = {};
-  for (const name of names) { const answer = await run(list[0], [name], 5000); result[name] = { installed: !answer.error && Boolean(answer.stdout.trim()), path: answer.stdout.trim().split(/\r?\n/)[0] || null }; }
+  for (const name of names) {
+    const answer = await run(list[0], [name], 5000);
+    const fromPath = answer.stdout.trim().split(/\r?\n/)[0] || null;
+    const detectedPath = fromPath || knownToolPaths(name).find(candidate => fs.existsSync(candidate)) || null;
+    result[name] = { installed: Boolean(detectedPath), path: detectedPath };
+  }
   return result;
 }
 async function nmapScan({ target, profile = 'standard' }) {
-  if (!validScope(target)) return { ok: false, message: 'Invalid assessment scope.' };
-  const installed = (await tools()).nmap.installed;
-  if (!installed) return { ok: false, code: 'TOOL_NOT_FOUND', message: 'Nmap is not installed or not in PATH. Configure it in Settings.' };
+  if (!validScope(target)) return { ok: false, message: 'El alcance de evaluación no es válido.' };
+  const nmap = (await tools()).nmap;
+  if (!nmap.installed) return { ok: false, code: 'TOOL_NOT_FOUND', message: 'Nmap no está instalado o no se encuentra en las ubicaciones verificadas. Configúralo en Configuración.' };
   const profiles = { quick: ['-T4', '--top-ports', '100', '-sV'], standard: ['-sV', '--top-ports', '1000', '-T3'], deep: ['-sV', '-O', '--script', 'safe', '-T3'] };
-  const answer = await run('nmap', [...(profiles[profile] || profiles.standard), '-oX', '-', target]);
+  const answer = await run(nmap.path, [...(profiles[profile] || profiles.standard), '-oX', '-', target]);
   return { ok: !answer.error, output: answer.stdout, error: answer.stderr || answer.error || null };
 }
 const server = http.createServer(async (req, res) => {
